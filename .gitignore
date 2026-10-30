@@ -1,0 +1,9 @@
+.env
+.env.*
+*.json.key
+*adminsdk*.json
+serviceAccount*.json
+node_modules/
+.firebase/
+.DS_Store
+Thumbs.db

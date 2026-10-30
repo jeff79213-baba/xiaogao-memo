@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FAF6EC">
+<title>小高的記憶秘書</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23FAF6EC'/%3E%3Cpath d='M18 16h28v34l-14-7-14 7z' fill='none' stroke='%23B4472A' stroke-width='4' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FAF6EC;
+    --paper-2:#FFFDF7;
+    --ink:#23201B;
+    --ink-2:#6B6357;
+    --ink-3:#9A9082;
+    --line:#E4DAC9;
+    --accent:#B4472A;
+    --accent-dark:#8E3520;
+    --green:#2E5B4A;
+    --shadow:0 10px 30px rgba(58,45,26,.10);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    background:
+      radial-gradient(1200px 500px at 50% -10%, #FFFDF6 0%, rgba(255,253,246,0) 70%),
+      var(--paper);
+    color:var(--ink);
+    font-family:"Noto Sans TC","Microsoft JhengHei",system-ui,-apple-system,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    overscroll-behavior-y:none;
+  }
+  button{font-family:inherit}
+
+  .app{max-width:760px;margin:0 auto;padding:0 18px;display:flex;flex-direction:column;min-height:100dvh}
+
+  /* ---------- header ---------- */
+  header{
+    position:sticky;top:0;z-index:20;
+    padding:calc(14px + env(safe-area-inset-top)) 0 10px;
+    background:linear-gradient(to bottom,var(--paper) 82%,rgba(250,246,236,.92));
+    backdrop-filter:blur(6px);
+  }
+  .brand{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .brand h1{
+    font-family:"Noto Serif TC",serif;font-weight:700;
+    font-size:clamp(19px,4.6vw,24px);letter-spacing:.02em;margin:0;
+  }
+  .brand .seal{
+    width:26px;height:26px;flex:none;border-radius:7px;border:1.5px solid var(--accent);
+    color:var(--accent);display:grid;place-items:center;
+    font-family:"Noto Serif TC",serif;font-size:15px;line-height:1;
+  }
+  .tag{
+    font-size:11px;color:var(--ink-2);border:1px solid var(--line);
+    border-radius:999px;padding:2px 9px;letter-spacing:.04em;background:var(--paper-2);
+  }
+
+  .datebar{display:flex;align-items:center;gap:6px;margin-top:12px}
+  .nav-btn{
+    width:34px;height:34px;flex:none;border-radius:10px;border:1px solid var(--line);
+    background:var(--paper-2);color:var(--ink-2);cursor:pointer;font-size:16px;line-height:1;
+    display:grid;place-items:center;transition:.15s;
+  }
+  .nav-btn:hover{border-color:var(--ink-3);color:var(--ink)}
+  .nav-btn:active{transform:scale(.94)}
+  #dateLabel{
+    flex:1;height:34px;border-radius:10px;border:1px solid transparent;background:transparent;
+    color:var(--ink);cursor:pointer;font-size:14.5px;font-weight:500;letter-spacing:.02em;
+    display:flex;align-items:center;justify-content:center;gap:7px;
+  }
+  #dateLabel:hover{background:rgba(228,218,201,.35)}
+  #dateLabel .wd{color:var(--ink-3);font-size:12.5px;font-weight:400}
+  #todayBtn{
+    height:34px;padding:0 12px;border-radius:10px;border:1px solid var(--line);
+    background:var(--paper-2);color:var(--ink-2);font-size:13px;cursor:pointer;transition:.15s;
+  }
+  #todayBtn:hover{border-color:var(--ink-3);color:var(--ink)}
+  #todayBtn[data-current="1"]{opacity:.45;pointer-events:none}
+  #datePicker{position:fixed;left:50%;bottom:50%;opacity:0;pointer-events:none;width:0;height:0}
+
+  .toolbar{display:flex;align-items:center;gap:8px;margin-top:11px;flex-wrap:wrap}
+  .search{
+    flex:1;min-width:130px;height:36px;display:flex;align-items:center;gap:7px;
+    background:var(--paper-2);border:1px solid var(--line);border-radius:10px;padding:0 10px;
+  }
+  .search svg{flex:none;opacity:.45}
+  .search input{
+    flex:1;min-width:0;border:0;outline:0;background:transparent;color:var(--ink);
+    font-size:13.5px;font-family:inherit;
+  }
+  .search input::placeholder{color:var(--ink-3)}
+  .stats{font-size:12px;color:var(--ink-3);font-variant-numeric:tabular-nums;white-space:nowrap}
+  #mergeBtn{
+    height:36px;padding:0 14px;border-radius:10px;border:1px solid var(--ink);
+    background:var(--ink);color:#FCF8EF;font-size:13.5px;font-weight:500;cursor:pointer;
+    display:flex;align-items:center;gap:7px;transition:.15s;white-space:nowrap;
+  }
+  #mergeBtn:hover{background:#3A342B}
+  #mergeBtn:disabled{opacity:.35;pointer-events:none}
+  #menuBtn{
+    width:36px;height:36px;flex:none;border-radius:10px;border:1px solid var(--line);
+    background:var(--paper-2);color:var(--ink-2);cursor:pointer;font-size:17px;line-height:1;
+  }
+  #menuBtn:hover{border-color:var(--ink-3);color:var(--ink)}
+
+  /* ---------- menu ---------- */
+  .menu{
+    position:absolute;right:0;top:100%;margin-top:6px;z-index:40;
+    background:var(--paper-2);border:1px solid var(--line);border-radius:12px;
+    box-shadow:var(--shadow);padding:6px;min-width:172px;
+  }
+  .menu[hidden]{display:none}
+  .menu button{
+    display:block;width:100%;text-align:left;border:0;background:transparent;
+    padding:9px 11px;border-radius:8px;font-size:13.5px;color:var(--ink);cursor:pointer;
+  }
+  .menu button:hover{background:#F0E9DA}
+  .menu button.danger{color:var(--accent)}
+  .menu hr{border:0;border-top:1px solid var(--line);margin:5px 4px}
+  .menuWrap{position:relative}
+
+  /* ---------- list ---------- */
+  main{flex:1;padding:8px 0 160px}
+  .dayHead{
+    display:flex;align-items:center;gap:10px;margin:8px 2px 14px;
+  }
+  .dayHead .line{flex:1;height:1px;background:var(--line)}
+  .dayHead span{font-size:12px;color:var(--ink-3);letter-spacing:.08em}
+
+  .entry{
+    display:grid;grid-template-columns:52px 1fr;gap:12px;
+    position:relative;padding:2px 0 18px;
+  }
+  .entry .stamp{
+    font-family:ui-monospace,SFMono-Regular,Consolas,monospace;
+    font-size:12.5px;color:var(--ink-3);padding-top:11px;
+    font-variant-numeric:tabular-nums;text-align:right;letter-spacing:-.02em;
+  }
+  .entry .col{position:relative;padding-left:16px;border-left:1px solid var(--line)}
+  .entry .col::before{
+    content:"";position:absolute;left:-3.5px;top:15px;width:6px;height:6px;border-radius:50%;
+    background:var(--paper);border:1.5px solid var(--ink-3);
+  }
+  .entry .card{
+    background:var(--paper-2);border:1px solid var(--line);border-radius:12px;
+    padding:11px 13px;font-size:15px;line-height:1.72;white-space:pre-wrap;word-break:break-word;
+    box-shadow:0 1px 0 rgba(58,45,26,.03);
+  }
+  .entry .card mark{background:#F6DFA6;color:inherit;border-radius:3px;padding:0 1px}
+  .entry .tools{
+    position:absolute;right:8px;top:6px;display:flex;gap:2px;opacity:0;transition:.15s;
+    background:linear-gradient(to left,var(--paper-2) 55%,rgba(255,253,247,0));
+    padding-left:14px;border-radius:0 12px 12px 0;
+  }
+  .entry:hover .tools,.entry:focus-within .tools{opacity:1}
+  .entry .tools button{
+    border:0;background:transparent;color:var(--ink-3);cursor:pointer;
+    font-size:11.5px;padding:5px 7px;border-radius:7px;
+  }
+  .entry .tools button:hover{background:#EFE7D8;color:var(--ink)}
+  .entry .tools button.del:hover{color:var(--accent)}
+  .entry.removing{animation:out .18s ease forwards}
+  @keyframes out{to{opacity:0;transform:translateY(-4px)}}
+
+  .empty{
+    text-align:center;color:var(--ink-3);padding:46px 16px 30px;font-size:14px;line-height:2;
+  }
+  .empty .big{
+    font-family:"Noto Serif TC",serif;font-size:17px;color:var(--ink-2);margin-bottom:6px;
+  }
+  .empty svg{display:block;margin:0 auto 14px;opacity:.35}
+  .foot-note{text-align:center;font-size:11.5px;color:var(--ink-3);margin-top:26px;line-height:1.9}
+
+  /* ---------- composer ---------- */
+  .composer{
+    position:fixed;left:0;right:0;bottom:0;z-index:30;
+    padding:10px 18px calc(12px + env(safe-area-inset-bottom));
+    background:linear-gradient(to top,rgba(250,246,236,.98) 55%,rgba(250,246,236,0));
+    pointer-events:none;
+  }
+  .composer-inner{
+    max-width:724px;margin:0 auto;pointer-events:auto;
+    background:var(--paper-2);border:1px solid var(--line);border-radius:16px;
+    box-shadow:var(--shadow);padding:10px 10px 8px 14px;
+    transition:border-color .15s;
+  }
+  .composer-inner:focus-within{border-color:#C9BBA2}
+  #input{
+    width:100%;min-height:26px;max-height:190px;border:0;outline:0;resize:none;
+    background:transparent;color:var(--ink);font-size:16px;line-height:1.6;font-family:inherit;
+    padding:6px 0 2px;
+  }
+  #input::placeholder{color:var(--ink-3)}
+  .crow{display:flex;align-items:center;gap:10px;margin-top:4px}
+  .hint{font-size:11.5px;color:var(--ink-3);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #count{font-size:11.5px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+  #sendBtn{
+    height:38px;padding:0 20px;border-radius:11px;border:0;background:var(--accent);color:#fff;
+    font-size:14.5px;font-weight:500;cursor:pointer;transition:.15s;flex:none;
+  }
+  #sendBtn:hover{background:var(--accent-dark)}
+  #sendBtn:active{transform:scale(.97)}
+  #sendBtn:disabled{opacity:.4;pointer-events:none}
+  .composer-inner.shake{animation:shake .28s}
+  @keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+
+  /* ---------- toast ---------- */
+  #toast{
+    position:fixed;left:50%;bottom:calc(112px + env(safe-area-inset-bottom));z-index:60;
+    transform:translate(-50%,14px);opacity:0;pointer-events:none;transition:.22s;
+    background:#2C2822;color:#FCF8EF;border-radius:999px;padding:10px 16px;
+    font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.18);
+    display:flex;align-items:center;gap:12px;max-width:calc(100vw - 36px);
+  }
+  #toast.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+  #toast button{
+    border:0;background:transparent;color:#F2C9A0;font-size:13px;font-weight:500;
+    cursor:pointer;padding:0;text-decoration:underline;text-underline-offset:3px;
+  }
+
+  /* ---------- modal ---------- */
+  .modal{
+    position:fixed;inset:0;z-index:80;display:flex;align-items:flex-end;justify-content:center;
+    background:rgba(35,32,27,.42);backdrop-filter:blur(2px);padding:0;
+  }
+  .modal[hidden]{display:none}
+  .sheet{
+    background:var(--paper);width:100%;max-width:760px;border-radius:20px 20px 0 0;
+    max-height:92dvh;display:flex;flex-direction:column;box-shadow:0 -10px 40px rgba(0,0,0,.18);
+    animation:up .24s ease;
+  }
+  @keyframes up{from{transform:translateY(24px);opacity:.6}}
+  .sheet header{
+    position:static;background:transparent;backdrop-filter:none;
+    padding:18px 20px 6px;display:flex;align-items:center;justify-content:space-between;gap:10px;
+  }
+  .sheet h2{font-family:"Noto Serif TC",serif;font-size:18px;margin:0;letter-spacing:.02em}
+  .xBtn{border:0;background:transparent;color:var(--ink-2);font-size:22px;line-height:1;cursor:pointer;padding:4px 6px;border-radius:8px}
+  .xBtn:hover{background:#EFE7D8}
+  .opts{display:flex;flex-wrap:wrap;gap:14px;padding:8px 20px 10px;font-size:13px;color:var(--ink-2)}
+  .opts label{display:flex;align-items:center;gap:6px;cursor:pointer}
+  .opts input{accent-color:var(--accent);width:15px;height:15px}
+  .previewWrap{padding:0 20px;flex:1;min-height:0;display:flex}
+  #preview{
+    flex:1;width:100%;min-height:180px;max-height:44dvh;overflow:auto;margin:0;
+    background:var(--paper-2);border:1px solid var(--line);border-radius:12px;
+    padding:14px 16px;font-size:13.5px;line-height:1.85;white-space:pre-wrap;word-break:break-word;
+    color:var(--ink);font-family:"Noto Sans TC",system-ui,sans-serif;
+  }
+  .sheet .actions{
+    display:flex;gap:8px;padding:14px 20px calc(18px + env(safe-area-inset-bottom));flex-wrap:wrap;
+  }
+  .sheet .actions button{
+    height:44px;border-radius:12px;font-size:14px;cursor:pointer;flex:1;
+    min-width:104px;transition:.15s;font-family:inherit;
+  }
+  .btn-primary{background:var(--accent);border:1px solid var(--accent);color:#fff;font-weight:500}
+  .btn-primary:hover{background:var(--accent-dark)}
+  .btn-ghost{background:var(--paper-2);border:1px solid var(--line);color:var(--ink)}
+  .btn-ghost:hover{border-color:var(--ink-3)}
+  .modal .meta{font-size:11.5px;color:var(--ink-3);padding:0 20px 12px}
+
+  @media (max-width:520px){
+    .app{padding:0 14px}
+    .entry{grid-template-columns:44px 1fr;gap:9px}
+    .entry .col{padding-left:13px}
+    .entry .tools{opacity:1;position:static;background:none;padding:0;justify-content:flex-end;margin-top:2px;border-radius:0}
+    .entry .card{padding:10px 12px;font-size:14.5px}
+    .hint{font-size:11px}
+    .composer{padding-left:14px;padding-right:14px}
+  }
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand">
+      <div class="seal">記</div>
+      <h1>小高的記憶秘書</h1>
+      <span class="tag">只存在本機</span>
+    </div>
+
+    <div class="datebar">
+      <button class="nav-btn" id="prevBtn" aria-label="前一天">‹</button>
+      <button id="dateLabel" aria-label="選擇日期">
+        <span id="dateText">—</span><span class="wd" id="weekText"></span>
+      </button>
+      <input type="date" id="datePicker" tabindex="-1" aria-hidden="true">
+      <button class="nav-btn" id="nextBtn" aria-label="後一天">›</button>
+      <button id="todayBtn">今天</button>
+    </div>
+
+    <div class="toolbar">
+      <div class="search">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="search" type="search" placeholder="搜尋今天的紀錄…" autocomplete="off">
+      </div>
+      <span class="stats" id="stats"></span>
+      <button id="mergeBtn">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h9M4 12h6M4 18h9"/><path d="m16 13 4 3-4 3"/><path d="M20 16h-7"/></svg>
+        整合資料
+      </button>
+      <div class="menuWrap">
+        <button id="menuBtn" aria-label="更多功能" aria-expanded="false">⋯</button>
+        <div class="menu" id="menu" hidden>
+          <button id="backupBtn">備份全部紀錄（JSON）</button>
+          <button id="restoreBtn">還原備份</button>
+          <hr>
+          <button class="danger" id="clearDayBtn">清空這一天</button>
+          <button class="danger" id="clearAllBtn">清空全部紀錄</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main id="list" aria-live="polite"></main>
+
+  <div class="composer">
+    <div class="composer-inner" id="composer">
+      <textarea id="input" rows="1" placeholder="想到什麼就打什麼，一段一段送出去…"></textarea>
+      <div class="crow">
+        <span class="hint">Enter 送出 · Shift+Enter 換行</span>
+        <span id="count"></span>
+        <button id="sendBtn">送出</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast" role="status"></div>
+
+<div class="modal" id="modal" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <header>
+      <h2 id="modalTitle">整合資料</h2>
+      <button class="xBtn" id="closeModal" aria-label="關閉">×</button>
+    </header>
+    <div class="opts">
+      <label><input type="checkbox" id="optPrompt" checked> 附上給 AI 的整理指令</label>
+      <label><input type="checkbox" id="optAll"> 包含所有日期的紀錄</label>
+    </div>
+    <div class="previewWrap"><pre id="preview"></pre></div>
+    <div class="meta" id="modalMeta"></div>
+    <div class="actions">
+      <button class="btn-primary" id="copyBtn">複製全部</button>
+      <button class="btn-ghost" id="wordBtn">下載 Word</button>
+      <button class="btn-ghost" id="txtBtn">下載純文字</button>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="importFile" accept="application/json,.json" hidden>
+
+<script>
+(function(){
+  "use strict";
+
+  var STORE_KEY = "memo-entries-v1";
+  var DRAFT_KEY = "memo-draft-v1";
+  var entries = [];
+  var viewDate = todayKey();
+  var query = "";
+  var lastDeleted = null;
+  var editing = null;
+  var toastTimer = null;
+
+  var $ = function(id){ return document.getElementById(id); };
+  var listEl = $("list"), inputEl = $("input"), composerEl = $("composer");
+
+  /* ---------- date helpers ---------- */
+  function pad(n){ return n < 10 ? "0" + n : "" + n; }
+  function keyOf(d){ return d.getFullYear() + "-" + pad(d.getMonth()+1) + "-" + pad(d.getDate()); }
+  function todayKey(){ return keyOf(new Date()); }
+  function parseKey(k){
+    var p = k.split("-");
+    return new Date(+p[0], +p[1]-1, +p[2]);
+  }
+  function shiftKey(k, days){
+    var d = parseKey(k); d.setDate(d.getDate() + days); return keyOf(d);
+  }
+  var WD = ["週日","週一","週二","週三","週四","週五","週六"];
+  function humanDate(k){
+    var d = parseKey(k);
+    return d.getFullYear() + "年" + (d.getMonth()+1) + "月" + d.getDate() + "日";
+  }
+  function timeOf(ts){
+    var d = new Date(ts);
+    return pad(d.getHours()) + ":" + pad(d.getMinutes());
+  }
+  function dateKeyOfTs(ts){ return keyOf(new Date(ts)); }
+
+  /* ---------- storage ---------- */
+  function load(){
+    try{
+      var raw = localStorage.getItem(STORE_KEY);
+      if(!raw) return [];
+      var arr = JSON.parse(raw);
+      if(!Array.isArray(arr)) return [];
+      return arr.filter(function(e){
+        return e && typeof e.text === "string" && typeof e.ts === "number";
+      });
+    }catch(e){ return []; }
+  }
+  function save(){
+    try{
+      localStorage.setItem(STORE_KEY, JSON.stringify(entries));
+    }catch(e){
+      toast("儲存失敗，瀏覽器空間可能已滿");
+    }
+  }
+  function loadDraft(){
+    try{ return localStorage.getItem(DRAFT_KEY) || ""; }catch(e){ return ""; }
+  }
+  function saveDraft(v){
+    try{
+      if(v) localStorage.setItem(DRAFT_KEY, v);
+      else localStorage.removeItem(DRAFT_KEY);
+    }catch(e){}
+  }
+
+  /* ---------- toast ---------- */
+  function toast(msg, actionLabel, onAction){
+    var el = $("toast");
+    el.innerHTML = "";
+    var span = document.createElement("span");
+    span.textContent = msg;
+    el.appendChild(span);
+    if(actionLabel){
+      var b = document.createElement("button");
+      b.type = "button";
+      b.textContent = actionLabel;
+      b.addEventListener("click", function(){ hideToast(); onAction && onAction(); });
+      el.appendChild(b);
+    }
+    el.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(hideToast, actionLabel ? 6000 : 2400);
+  }
+  function hideToast(){ $("toast").classList.remove("show"); }
+
+  /* ---------- rendering ---------- */
+  function entriesOfDay(k){
+    return entries.filter(function(e){ return dateKeyOfTs(e.ts) === k; })
+                  .sort(function(a,b){ return a.ts - b.ts; });
+  }
+  function esc(s){
+    return String(s).replace(/[&<>"']/g, function(c){
+      return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c];
+    });
+  }
+  function highlight(text){
+    var safe = esc(text);
+    if(!query) return safe;
+    var q = esc(query).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    try{
+      return safe.replace(new RegExp(q, "gi"), function(m){ return "<mark>" + m + "</mark>"; });
+    }catch(e){ return safe; }
+  }
+
+  function render(){
+    var label = $("dateText");
+    var d = parseKey(viewDate);
+    if(label) label.textContent = humanDate(viewDate);
+    $("weekText").textContent = WD[d.getDay()] + (viewDate === todayKey() ? " · 今天" : "");
+    $("todayBtn").setAttribute("data-current", viewDate === todayKey() ? "1" : "0");
+
+    var dayEntries = entriesOfDay(viewDate);
+    var visible = query
+      ? dayEntries.filter(function(e){ return e.text.toLowerCase().indexOf(query.toLowerCase()) > -1; })
+      : dayEntries;
+
+    listEl.innerHTML = "";
+
+    if(dayEntries.length === 0){
+      var empty = document.createElement("div");
+      empty.className = "empty";
+      empty.innerHTML =
+        '<svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="#23201B" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">' +
+        '<path d="M4 4h13l3 3v13a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"/><path d="M7 9h8M7 13h8M7 17h5"/></svg>' +
+        '<div class="big">' + (viewDate === todayKey() ? "今天還沒有紀錄" : "這一天沒有紀錄") + '</div>' +
+        '<div>' + (viewDate === todayKey() ? "想到什麼就丟進來，不必整理，時段會自動記下來。" : "") + '</div>';
+      listEl.appendChild(empty);
+    } else {
+      var head = document.createElement("div");
+      head.className = "dayHead";
+      head.innerHTML = '<div class="line"></div><span>' + humanDate(viewDate) + ' · ' + WD[d.getDay()] + '</span><div class="line"></div>';
+      listEl.appendChild(head);
+
+      if(visible.length === 0){
+        var none = document.createElement("div");
+        none.className = "empty";
+        none.textContent = "找不到符合「" + query + "」的內容";
+        listEl.appendChild(none);
+      }
+
+      var frag = document.createDocumentFragment();
+      visible.forEach(function(e){
+        var row = document.createElement("article");
+        row.className = "entry";
+        row.setAttribute("data-id", e.id);
+
+        var stamp = document.createElement("div");
+        stamp.className = "stamp";
+        stamp.textContent = timeOf(e.ts);
+
+        var col = document.createElement("div");
+        col.className = "col";
+
+        var card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = highlight(e.text);
+
+        var tools = document.createElement("div");
+        tools.className = "tools";
+        var edit = document.createElement("button");
+        edit.textContent = "編輯";
+        edit.addEventListener("click", function(){ editEntry(e.id); });
+        var del = document.createElement("button");
+        del.className = "del";
+        del.textContent = "刪除";
+        del.addEventListener("click", function(){ removeEntry(e.id, row); });
+        tools.appendChild(edit);
+        tools.appendChild(del);
+
+        col.appendChild(card);
+        col.appendChild(tools);
+        row.appendChild(stamp);
+        row.appendChild(col);
+        frag.appendChild(row);
+      });
+      listEl.appendChild(frag);
+    }
+
+    var stats = $("stats");
+    if(dayEntries.length){
+      stats.textContent = dayEntries.length + " 段 · " +
+        timeOf(dayEntries[0].ts) + "–" + timeOf(dayEntries[dayEntries.length-1].ts);
+    } else {
+      stats.textContent = "";
+    }
+
+    $("mergeBtn").disabled = entries.length === 0;
+    var fn = document.createElement("div");
+    fn.className = "foot-note";
+    fn.innerHTML = "資料只存在這台裝置的瀏覽器裡，不會上傳到任何地方。<br>換裝置或清除瀏覽器資料前，記得先從右上角 ⋯ 備份。";
+    listEl.appendChild(fn);
+  }
+
+  /* ---------- entry actions ---------- */
+  function addEntry(){
+    var text = inputEl.value.replace(/\s+$/,"");
+    if(!text.trim()){
+      composerEl.classList.add("shake");
+      setTimeout(function(){ composerEl.classList.remove("shake"); }, 300);
+      inputEl.focus();
+      return;
+    }
+    if(editing){
+      var target = entries.find(function(e){ return e.id === editing.entry.id; });
+      if(target){
+        target.text = text;
+        viewDate = dateKeyOfTs(target.ts);
+        toast("已更新這一段");
+      }
+      endEditing();
+    } else {
+      if(viewDate !== todayKey()) viewDate = todayKey();
+      query = ""; $("search").value = "";
+      var now = Date.now();
+      entries.push({ id: "e" + now + Math.random().toString(36).slice(2,7), ts: now, text: text });
+    }
+    save();
+    inputEl.value = "";
+    saveDraft("");
+    autosize();
+    updateCount();
+    render();
+    requestAnimationFrame(function(){
+      window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+      inputEl.focus();
+    });
+  }
+
+  function removeEntry(id, row){
+    var idx = entries.findIndex(function(e){ return e.id === id; });
+    if(idx < 0) return;
+    lastDeleted = { entry: entries[idx], index: idx };
+    entries.splice(idx, 1);
+    save();
+    if(row){
+      row.classList.add("removing");
+      setTimeout(render, 120);
+    } else {
+      render();
+    }
+    toast("已刪除一段", "復原", function(){
+      if(!lastDeleted) return;
+      entries.splice(Math.min(lastDeleted.index, entries.length), 0, lastDeleted.entry);
+      save(); render();
+      lastDeleted = null;
+      toast("已復原");
+    });
+  }
+
+  function endEditing(){
+    editing = null;
+    $("sendBtn").textContent = "送出";
+  }
+
+  function editEntry(id){
+    var item = entries.find(function(e){ return e.id === id; });
+    if(!item) return;
+    editing = { entry: item };
+    $("sendBtn").textContent = "更新";
+    inputEl.value = item.text;
+    autosize();
+    updateCount();
+    inputEl.focus();
+    inputEl.setSelectionRange(inputEl.value.length, inputEl.value.length);
+    window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+    toast("正在編輯 " + timeOf(item.ts) + " 這一段", "取消", function(){
+      endEditing();
+      inputEl.value = ""; saveDraft(""); autosize(); updateCount();
+      toast("已取消編輯");
+    });
+  }
+
+  /* ---------- merge / export ---------- */
+  function buildText(opts){
+    var withPrompt = opts.withPrompt, all = opts.all;
+    var scope = all ? entries.slice() : entriesOfDay(viewDate);
+    scope.sort(function(a,b){ return a.ts - b.ts; });
+
+    var lines = [];
+    if(withPrompt){
+      lines.push("請幫我把下面這些零散的想法紀錄做分類整理，保留原本的時間順序與原意，不要刪掉細節，最後列出可以執行的下一步。");
+      lines.push("");
+    }
+
+    if(!all){
+      lines.push("【" + humanDate(viewDate) + "（" + WD[parseKey(viewDate).getDay()] + "）】");
+      lines.push("");
+      scope.forEach(function(e){
+        lines.push(timeOf(e.ts));
+        lines.push(e.text);
+        lines.push("");
+      });
+    } else {
+      var groups = {};
+      var order = [];
+      scope.forEach(function(e){
+        var k = dateKeyOfTs(e.ts);
+        if(!groups[k]){ groups[k] = []; order.push(k); }
+        groups[k].push(e);
+      });
+      order.sort();
+      order.forEach(function(k, i){
+        if(i > 0) lines.push("");
+        lines.push("【" + humanDate(k) + "（" + WD[parseKey(k).getDay()] + "）】");
+        lines.push("");
+        groups[k].forEach(function(e){
+          lines.push(timeOf(e.ts));
+          lines.push(e.text);
+          lines.push("");
+        });
+      });
+    }
+    while(lines.length && lines[lines.length-1] === "") lines.pop();
+    return { text: lines.join("\n"), count: scope.length, all: all };
+  }
+
+  function openModal(){
+    if(!entries.length){
+      toast("還沒有任何紀錄");
+      return;
+    }
+    $("modal").hidden = false;
+    document.body.style.overflow = "hidden";
+    refreshPreview();
+  }
+  function closeModal(){
+    $("modal").hidden = true;
+    document.body.style.overflow = "";
+  }
+  function refreshPreview(){
+    var opts = { withPrompt: $("optPrompt").checked, all: $("optAll").checked };
+    var out = buildText(opts);
+    $("preview").textContent = out.text;
+    $("modalMeta").textContent = "共 " + out.count + " 段 · " + (out.all ? "所有日期" : humanDate(viewDate)) + " · " + out.text.length + " 字";
+    return out;
+  }
+
+  function copyText(text){
+    if(navigator.clipboard && window.isSecureContext){
+      return navigator.clipboard.writeText(text);
+    }
+    return new Promise(function(resolve, reject){
+      var ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      try{
+        var ok = document.execCommand("copy");
+        document.body.removeChild(ta);
+        ok ? resolve() : reject(new Error("copy failed"));
+      }catch(err){
+        document.body.removeChild(ta);
+        reject(err);
+      }
+    });
+  }
+
+  function download(filename, content, mime){
+    var blob = new Blob([content], { type: mime });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1500);
+  }
+
+  function wordHtml(text){
+    var blocks = text.split("\n").map(function(line){
+      if(!line) return '<p class="gap">&nbsp;</p>';
+      var cls = /^【/.test(line) ? "h" : (/^\d{2}:\d{2}$/.test(line) ? "t" : "c");
+      return '<p class="' + cls + '">' + esc(line) + '</p>';
+    }).join("");
+    return '<!DOCTYPE html><html><head><meta charset="utf-8">' +
+      '<title>小高的記憶秘書</title>' +
+      '<style>' +
+      '@page{size:A4;margin:2.2cm 2cm;}' +
+      'body{font-family:"Microsoft JhengHei","PMingLiU",sans-serif;font-size:12pt;color:#23201B;line-height:1.7;}' +
+      'p{margin:0;}' +
+      'p.gap{margin:0;line-height:1.1;}' +
+      'p.h{font-weight:bold;font-size:13pt;margin:6pt 0 4pt;}' +
+      'p.t{font-family:Consolas,monospace;color:#8E3520;font-size:10.5pt;margin-top:6pt;}' +
+      'p.c{margin-bottom:2pt;}' +
+      '</style></head><body>' + blocks + '</body></html>';
+  }
+
+  /* ---------- menu actions ---------- */
+  function backup(){
+    download("小高記憶備份_" + todayKey() + ".json", JSON.stringify({
+      app: "小高的記憶秘書",
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      entries: entries
+    }, null, 2), "application/json");
+    toast("備份檔已下載");
+  }
+
+  function restore(file){
+    var reader = new FileReader();
+    reader.onload = function(){
+      try{
+        var data = JSON.parse(String(reader.result));
+        var arr = Array.isArray(data) ? data : data.entries;
+        if(!Array.isArray(arr)) throw new Error("bad format");
+        var incoming = arr.filter(function(e){
+          return e && typeof e.text === "string" && typeof e.ts === "number";
+        }).map(function(e){
+          return { id: e.id || ("e" + e.ts + Math.random().toString(36).slice(2,7)), ts: e.ts, text: e.text };
+        });
+        if(!incoming.length){ toast("這份備份沒有可用資料"); return; }
+        var seen = {};
+        entries.forEach(function(e){ seen[e.id] = true; });
+        var added = 0;
+        incoming.forEach(function(e){
+          if(seen[e.id]) return;
+          seen[e.id] = true;
+          entries.push(e);
+          added++;
+        });
+        save(); render();
+        toast(added ? "已還原 " + added + " 段紀錄" : "沒有新的紀錄可還原");
+      }catch(err){
+        toast("檔案格式不正確，無法還原");
+      }
+    };
+    reader.readAsText(file, "utf-8");
+  }
+
+  /* ---------- misc ui ---------- */
+  function autosize(){
+    inputEl.style.height = "auto";
+    inputEl.style.height = Math.min(inputEl.scrollHeight, 190) + "px";
+  }
+  function updateCount(){
+    var v = inputEl.value;
+    $("count").textContent = v ? v.length + " 字" : "";
+    $("sendBtn").disabled = !v.trim();
+  }
+
+  /* ---------- events ---------- */
+  $("sendBtn").addEventListener("click", addEntry);
+
+  inputEl.addEventListener("keydown", function(ev){
+    if(ev.key === "Enter" && !ev.shiftKey && !ev.isComposing){
+      ev.preventDefault();
+      addEntry();
+    }
+  });
+  inputEl.addEventListener("input", function(){
+    autosize();
+    updateCount();
+    saveDraft(inputEl.value);
+  });
+
+  $("prevBtn").addEventListener("click", function(){
+    viewDate = shiftKey(viewDate, -1); query = ""; $("search").value = ""; render();
+  });
+  $("nextBtn").addEventListener("click", function(){
+    viewDate = shiftKey(viewDate, 1); query = ""; $("search").value = ""; render();
+  });
+  $("todayBtn").addEventListener("click", function(){
+    viewDate = todayKey(); query = ""; $("search").value = ""; render();
+  });
+  $("dateLabel").addEventListener("click", function(){
+    var p = $("datePicker");
+    p.value = viewDate;
+    if(typeof p.showPicker === "function"){
+      try{ p.showPicker(); return; }catch(e){}
+    }
+    p.style.cssText = "position:fixed;left:0;top:0;opacity:1;pointer-events:auto;width:1px;height:1px";
+    p.focus(); p.click();
+  });
+  $("datePicker").addEventListener("change", function(){
+    if(this.value){
+      viewDate = this.value;
+      query = ""; $("search").value = "";
+      render();
+    }
+    this.style.cssText = "";
+  });
+
+  $("search").addEventListener("input", function(){
+    query = this.value.trim();
+    render();
+  });
+
+  $("mergeBtn").addEventListener("click", openModal);
+  $("closeModal").addEventListener("click", closeModal);
+  $("modal").addEventListener("click", function(ev){
+    if(ev.target === this) closeModal();
+  });
+  $("optPrompt").addEventListener("change", refreshPreview);
+  $("optAll").addEventListener("change", refreshPreview);
+
+  $("copyBtn").addEventListener("click", function(){
+    var out = refreshPreview();
+    copyText(out.text).then(function(){
+      toast("已複製 " + out.count + " 段，可以貼給 AI 了");
+    }).catch(function(){
+      toast("複製失敗，請手動選取預覽內容");
+    });
+  });
+
+  $("wordBtn").addEventListener("click", function(){
+    var out = refreshPreview();
+    var name = "小高記憶_" + (out.all ? todayKey() : viewDate) + ".doc";
+    download(name, "\ufeff" + wordHtml(out.text), "application/msword;charset=utf-8");
+    toast("Word 檔已下載");
+  });
+
+  $("txtBtn").addEventListener("click", function(){
+    var out = refreshPreview();
+    var name = "小高記憶_" + (out.all ? todayKey() : viewDate) + ".txt";
+    download(name, "\ufeff" + out.text, "text/plain;charset=utf-8");
+    toast("純文字檔已下載");
+  });
+
+  $("menuBtn").addEventListener("click", function(ev){
+    ev.stopPropagation();
+    var m = $("menu");
+    m.hidden = !m.hidden;
+    this.setAttribute("aria-expanded", m.hidden ? "false" : "true");
+  });
+  document.addEventListener("click", function(ev){
+    if(!ev.target.closest(".menuWrap")){
+      $("menu").hidden = true;
+      $("menuBtn").setAttribute("aria-expanded", "false");
+    }
+  });
+
+  $("backupBtn").addEventListener("click", function(){ $("menu").hidden = true; backup(); });
+  $("restoreBtn").addEventListener("click", function(){ $("menu").hidden = true; $("importFile").click(); });
+  $("importFile").addEventListener("change", function(){
+    if(this.files && this.files[0]) restore(this.files[0]);
+    this.value = "";
+  });
+  $("clearDayBtn").addEventListener("click", function(){
+    $("menu").hidden = true;
+    var day = entriesOfDay(viewDate);
+    if(!day.length){ toast("這一天沒有紀錄"); return; }
+    if(!confirm("確定清空 " + humanDate(viewDate) + " 的 " + day.length + " 段紀錄？")) return;
+    entries = entries.filter(function(e){ return dateKeyOfTs(e.ts) !== viewDate; });
+    save(); render();
+    toast("已清空這一天");
+  });
+  $("clearAllBtn").addEventListener("click", function(){
+    $("menu").hidden = true;
+    if(!entries.length){ toast("目前沒有任何紀錄"); return; }
+    if(!confirm("確定清空全部 " + entries.length + " 段紀錄？此動作無法復原，建議先備份。")) return;
+    entries = []; save(); render();
+    toast("已清空全部紀錄");
+  });
+
+  document.addEventListener("keydown", function(ev){
+    if(ev.key === "Escape" && !$("modal").hidden) closeModal();
+    if((ev.ctrlKey || ev.metaKey) && ev.key === "Enter"){ ev.preventDefault(); addEntry(); }
+    if((ev.ctrlKey || ev.metaKey) && ev.shiftKey && ev.key.toLowerCase() === "e"){ ev.preventDefault(); openModal(); }
+  });
+
+  /* ---------- init ---------- */
+  entries = load();
+  inputEl.value = loadDraft();
+  autosize();
+  updateCount();
+  render();
+})();
+</script>
+</body>
+</html>
