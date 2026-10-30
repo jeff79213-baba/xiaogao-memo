@@ -1,0 +1,17 @@
+小高的記憶秘書
+
+Firebase（建議使用）
+https://memo-sk.web.app
+
+GitHub Pages
+https://jeff79213-baba.github.io/xiaogao-memo/
+
+GitHub 原始碼
+https://github.com/jeff79213-baba/xiaogao-memo
+
+功能
+- 每送出一段就一筆紀錄，自動標記幾點幾分
+- 可切換日期、搜尋、編輯、刪除（可復原）
+- 「整合資料」可一鍵複製全部，或下載 Word / 純文字
+- 可選擇附上給 AI 的整理指令、包含所有日期
+- 資料只存在本機瀏覽器（localStorage），可從 ⋯ 備份 / 還原 JSON
